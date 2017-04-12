@@ -3,36 +3,81 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-	<!-- Load helper.css to use our helper classes.
-	<link href="../../../../styles/helper.css" rel="stylesheet">
-	-->
-	
 	<!-- JS -->
 	<script src="../../../scripts/buildfire.js"></script>
-   
- 	<!--
-    <script src="../../../../scripts/angular/angular.min.js"></script>
-    <script src="../../../../scripts/angular/ui-bootstrap.min.js"></script>
-
-    <script src="../../../../scripts/jquery/jquery-1.11.2.min.js"></script>
-    -->
-	<link rel="stylesheet" type="text/css" href="css/normalize.css" />
+    <link rel="stylesheet" type="text/css" href="css/normalize.css" />
 	<link rel="stylesheet" type="text/css" href="css/component.css" />
 </head>
 <body>
 	<div class="container demo-2">
 		<div id="large-header" class="large-header">
 			<canvas id="demo-canvas"></canvas>
-			<div class="main-title">
-				<h2>Plugin 1</h2>
-				<h2>Plugin 2</h2>
-				<h2>Plugin 3</h2>
-				<h2>Plugin 4</h2>
-				<h2>Plugin 5</h2>
+			<div id="items" class="main-title">
 
 			</div>
 		</div>
 	</div><!-- /container -->
+
+
+
+	<script>
+        var plugins=[];
+
+        function loadData(err,obj){
+            if(err)return;
+            if(!obj.data._buildfire)return;
+
+            plugins = prepPlugins(obj.data._buildfire.plugins);
+            var pluginsContainer= document.getElementById("items");
+            //pluginsContainer.innerHTML='';
+
+            var h =Math.round(window.innerWidth * (9/16));
+            for(var i=0; i < plugins.length ; i++){
+                var p=plugins[i].data || plugins[i];
+
+                var pluginElement = document.createElement('h2');
+                pluginElement.innerHTML = p.title;
+                pluginElement.setAttribute('index',i);
+                pluginElement.onclick=onClick;
+
+                pluginsContainer.appendChild(pluginElement);
+            }
+        }
+
+        function prepPlugins(plugins){
+            if(!plugins || !plugins.result || !plugins.result.length) return [];
+            if(!plugins.result[0].data) return plugins.result;
+
+            var temp=[];
+            plugins.result.forEach(function(p){
+                var i = plugins.data.indexOf(p.data.instanceId);
+                if(i>=0) temp[i] = p.data;
+            });
+
+            return temp;
+        }
+
+        buildfire.datastore.getWithDynamicData(loadData);
+        buildfire.datastore.onUpdate(function(obj){loadData(null,obj)});
+
+
+        function onClick(e){
+
+            var i = parseInt(this.getAttribute('index') );
+            var p = plugins[i];
+
+            buildfire.navigation.navigateTo({
+                pluginId: p.pluginTypeId
+                ,folderName : p.folderName || p.pluginType.folderName
+                ,instanceId : p.instanceId
+                ,title:p.title
+            });
+        }
+
+
+
+
+	</script>
 
 	<script src="js/bubbles.js"></script>
 </body>
